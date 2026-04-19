@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import Icon from './Icon'
 import { DifficultyBadge, ToastProvider } from './Shared'
+import Landing from './Landing'
 import Dashboard from './Dashboard'
 import Explorer from './Explorer'
 import Detail from './Detail'
@@ -26,6 +27,7 @@ function loadState() {
       activeScreen: saved.activeScreen || 'dashboard',
       tweaks: { ...DEFAULT_TWEAKS, ...(saved.tweaks || {}) },
       activeProblemId: saved.activeProblemId || null,
+      user: saved.user || null,
     }
   } catch {
     return {
@@ -33,6 +35,7 @@ function loadState() {
       activeScreen: 'dashboard',
       tweaks: { ...DEFAULT_TWEAKS },
       activeProblemId: null,
+      user: null,
     }
   }
 }
@@ -46,6 +49,7 @@ const App = () => {
   })
   const [explorerFilters, setExplorerFilters] = useState(null)
   const [tweaks, setTweaks] = useState(() => loadState().tweaks)
+  const [user, setUser] = useState(() => loadState().user)
   const [showTweaks, setShowTweaks] = useState(false)
   const [cmdKOpen, setCmdKOpen] = useState(false)
   const [cmdKQuery, setCmdKQuery] = useState('')
@@ -72,9 +76,10 @@ const App = () => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         problems, activeScreen, tweaks,
         activeProblemId: activeProblem?.id || null,
+        user,
       }))
     } catch {}
-  }, [problems, activeScreen, tweaks, activeProblem])
+  }, [problems, activeScreen, tweaks, activeProblem, user])
 
   const updateTweaks = (patch) => {
     setTweaks(t => ({ ...t, ...patch }))
@@ -137,6 +142,10 @@ const App = () => {
     return problems.filter(p => p.title.toLowerCase().includes(q) || p.categoryName.toLowerCase().includes(q)).slice(0, 10)
   }, [cmdKQuery, problems])
 
+  if (!user) {
+    return <Landing onSetup={(u) => setUser(u)} />
+  }
+
   return (
     <ToastProvider>
       <div className="app" data-nav={tweaks.sidebar}>
@@ -147,7 +156,7 @@ const App = () => {
             {tweaks.sidebar === 'expanded' && (
               <div className="col" style={{ gap: 0 }}>
                 <div className="brand-name">DSA Tracker</div>
-                <div className="brand-sub">tuf+ · {problems.length} problems</div>
+                <div className="brand-sub">{problems.length} problems</div>
               </div>
             )}
           </div>
@@ -245,7 +254,7 @@ const App = () => {
 
           <div className="content">
             {activeScreen === 'dashboard' && (
-              <Dashboard problems={problems} categories={categories} onOpenProblem={openProblem} onNavigate={navigate} ringStyle={tweaks.ringStyle}/>
+              <Dashboard problems={problems} categories={categories} onOpenProblem={openProblem} onNavigate={navigate} ringStyle={tweaks.ringStyle} user={user}/>
             )}
             {activeScreen === 'explorer' && (
               <Explorer problems={problems} categories={categories} initialFilters={explorerFilters} onOpenProblem={openProblem} onUpdate={updateProblem}/>

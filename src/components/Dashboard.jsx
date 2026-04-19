@@ -3,7 +3,14 @@ import Icon from './Icon'
 import { DifficultyBadge, Ring, StatCard } from './Shared'
 import { RECENT } from '../data'
 
-const Dashboard = ({ problems, categories, onOpenProblem, onNavigate, ringStyle }) => {
+const getGreeting = () => {
+  const h = new Date().getHours()
+  if (h < 12) return 'Good morning'
+  if (h < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
+const Dashboard = ({ problems, categories, onOpenProblem, onNavigate, ringStyle, user }) => {
   const stats = useMemo(() => {
     const total = problems.length
     const solved = problems.filter(p => p.status === 'solved').length
@@ -32,8 +39,8 @@ const Dashboard = ({ problems, categories, onOpenProblem, onNavigate, ringStyle 
       {/* Header row */}
       <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
-          <h1 className="h1">Good afternoon, Aarav</h1>
-          <div className="faint mt-8">Sunday, April 19 · You have <span className="mono" style={{ color: 'var(--text)' }}>{stats.total - stats.solved}</span> problems left on TUF+</div>
+          <h1 className="h1">{getGreeting()}, {user?.name || 'there'}</h1>
+          <div className="faint mt-8">Sunday, April 19 · You have <span className="mono" style={{ color: 'var(--text)' }}>{stats.total - stats.solved}</span> problems remaining</div>
         </div>
         <div className="row gap-8">
           <button className="btn" onClick={() => onNavigate('explorer')}>
@@ -50,7 +57,7 @@ const Dashboard = ({ problems, categories, onOpenProblem, onNavigate, ringStyle 
         <StatCard
           title="Total solved"
           value={<span>{stats.solved}<span className="faint" style={{ fontSize: 18, fontWeight: 400 }}>/{stats.total}</span></span>}
-          sub={`${Math.round(stats.solved / stats.total * 100)}% of TUF+ checklist`}
+          sub={`${Math.round(stats.solved / stats.total * 100)}% complete`}
           icon={<Icon name="check" size={18}/>}
         >
           <div className="mt-16 bar-track"><div className="bar-fill" style={{ width: `${stats.solved / stats.total * 100}%` }}/></div>
